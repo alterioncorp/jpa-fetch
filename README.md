@@ -3,6 +3,8 @@
 [![codecov](https://codecov.io/gh/alterioncorp/jpa-fetch/graph/badge.svg)](https://codecov.io/gh/alterioncorp/jpa-fetch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
+A thin wrapper around JPA's `EntityManager` API with first-class fetch control — callers specify which associations to load eagerly using type-safe QueryDSL paths, translated into JPA entity graphs at runtime.
+
 ## Quick start
 
 ```java
