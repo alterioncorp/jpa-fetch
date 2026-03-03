@@ -158,6 +158,12 @@ entityFinder.createNamedQuery(Person.QUERY_BY_NAME, Person.class)
         .setParameter(1, "Smith")
         .setFetchPaths(QPerson.person.organization())
         .getSingleResult();
+
+// Named query via JPA Metamodel TypedQueryReference (Jakarta Persistence 3.2)
+entityFinder.createQuery(Person_.findByName)
+        .setParameter(1, "Smith")
+        .setFetchPaths(QPerson.person.organization())
+        .getSingleResult();
 ```
 
 `setFetchPaths` can be called at any position in the chain.
