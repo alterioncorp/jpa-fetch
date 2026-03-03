@@ -14,7 +14,7 @@
 	<version>1.0-SNAPSHOT</version>
 
 	<name>jpa-fetch</name>
-	<description>JPA entity graph builder using QueryDSL path references.</description>
+	<description>A thin wrapper around JPA's EntityManager API with first-class fetch control</description>
 	<url>https://github.com/alterioncorp/jpa-fetch</url>
 
 	<licenses>
