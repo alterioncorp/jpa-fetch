@@ -101,6 +101,12 @@ public class EntityFinderImpl implements EntityFinder {
 		return entityManager.find(type, id, lockMode, buildHints(type, properties, fetchPaths));
 	}
 
+	/** {@inheritDoc} */
+	@Override
+	public void clear() {
+		entityManager.clear();
+	}
+
 	private <T> Map<String, Object> buildHints(Class<T> type, Map<String, Object> base, Path<?>... fetchPaths) {
 		HashMap<String, Object> hints = new HashMap<>(base);
 		if (fetchPaths.length > 0) {

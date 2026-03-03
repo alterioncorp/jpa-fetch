@@ -111,4 +111,12 @@ public interface EntityFinder {
 	 */
 	<T> T find(Class<T> type, Object id, LockModeType lockMode, Map<String, Object> properties, Path<?>... fetchPaths);
 
+	/**
+	 * Clears the persistence context, causing all managed entities to become
+	 * detached.
+	 *
+	 * <p>Mirrors {@link jakarta.persistence.EntityManager#clear()}.
+	 */
+	void clear();
+
 }

@@ -148,4 +148,13 @@ public class EntityFinderImplMockTest {
 		Mockito.verify(entityManager).find(Person.class, 1L, LockModeType.PESSIMISTIC_READ,
 				Map.of("someHint", "someValue", EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph));
 	}
+
+	// --- clear ---
+
+	@Test
+	public void testClear_DelegatesToEntityManager() {
+		entityFinder.clear();
+
+		Mockito.verify(entityManager).clear();
+	}
 }
