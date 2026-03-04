@@ -97,7 +97,7 @@ entityFinder.find(Person.class, id,
 <dependency>
     <groupId>io.github.alterioncorp</groupId>
     <artifactId>jpa-fetch</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
