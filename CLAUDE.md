@@ -40,7 +40,7 @@ This is a small Java library (package `io.github.alterioncorp.jpa.fetch`, groupI
 All methods accept `Path<?>... fetchPaths` (QueryDSL Q-type paths) to build entity graphs on-the-fly via `PathParser` (package-private). Entity graphs are applied as a `jakarta.persistence.fetchgraph` hint (standard JPA).
 
 API surface:
-- `find(type, id, fetchPaths...)` — looks up by primary key; clears persistence context before calling `entityManager.find()`
+- `find(type, id, fetchPaths...)` — looks up by primary key via `entityManager.find()`
 - `find(type, id, properties, fetchPaths...)` — same, with additional JPA hints merged in
 - `find(type, id, lockMode, fetchPaths...)` — same, with lock mode
 - `find(type, id, lockMode, properties, fetchPaths...)` — same, with both

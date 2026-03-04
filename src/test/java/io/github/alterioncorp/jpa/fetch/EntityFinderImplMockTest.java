@@ -5,7 +5,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import io.github.alterioncorp.jpa.fetch.entities.Person;
@@ -55,16 +54,6 @@ public class EntityFinderImplMockTest {
 	// --- find(type, id, fetchPaths...) ---
 
 	@Test
-	public void testFind_ClearsBeforeFind() {
-		InOrder inOrder = Mockito.inOrder(entityManager);
-
-		entityFinder.find(Person.class, 1L);
-
-		inOrder.verify(entityManager).clear();
-		inOrder.verify(entityManager).find(Person.class, 1L, Map.of());
-	}
-
-	@Test
 	public void testFind_NoPaths_PassesEmptyHints() {
 		Person person = new Person("alice");
 		Mockito.when(entityManager.find(Person.class, 1L, Map.of())).thenReturn(person);
@@ -112,7 +101,6 @@ public class EntityFinderImplMockTest {
 	public void testFind_WithLockMode_NoPaths() {
 		entityFinder.find(Person.class, 1L, LockModeType.PESSIMISTIC_WRITE);
 
-		Mockito.verify(entityManager).clear();
 		Mockito.verify(entityManager).find(Person.class, 1L, LockModeType.PESSIMISTIC_WRITE, Map.of());
 	}
 

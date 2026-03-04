@@ -97,7 +97,7 @@ entityFinder.find(Person.class, id,
 <dependency>
     <groupId>io.github.alterioncorp</groupId>
     <artifactId>jpa-fetch</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 
@@ -236,10 +236,6 @@ Person person = entityFinder.find(Person.class, id,
 Person person = entityFinder.find(Person.class, id, LockModeType.PESSIMISTIC_WRITE,
         QPerson.person.organization());
 ```
-
-The persistence context is cleared before each `find` call to avoid returning a cached instance that lacks the requested associations.
-
-> **Note:** This clear is a side effect that detaches all currently managed entities. Any managed entity obtained before the `find` call will become detached, and lazy associations on it that have not yet been loaded will throw a `LazyInitializationException` if accessed afterwards. Avoid interleaving `find` calls with code that relies on other entities remaining managed.
 
 ### Collection associations
 
