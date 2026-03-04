@@ -5,45 +5,28 @@ import java.util.Map;
 
 import com.querydsl.core.types.Path;
 
-import jakarta.persistence.LockModeType;
-
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.TypedQueryReference;
 
 /**
- * CDI-managed implementation of {@link EntityFinder}.
- *
- * <p>Bound to the {@code "default"} persistence unit via
- * {@link jakarta.persistence.PersistenceContext}. Declare it as an injection
- * point in any CDI bean:
- *
- * <pre>{@code
- * @Inject
- * EntityFinder entityFinder;
- * }</pre>
+ * Implementation of {@link EntityFinder}.
  *
  * <p>Entity graphs are constructed from the supplied paths and applied as a
  * {@code jakarta.persistence.fetchgraph} hint, so only the attributes
  * reachable via those paths are eagerly loaded.
  *
  */
-@ApplicationScoped
 public class EntityFinderImpl implements EntityFinder {
 
 	static final String HINT_FETCH_GRAPH = "jakarta.persistence.fetchgraph";
 
-	@PersistenceContext(unitName = "default")
-	EntityManager entityManager;
-
-	/** No-arg constructor for CDI. */
-	public EntityFinderImpl() {}
+	private final EntityManager entityManager;
 
 	/**
-	 * Constructor for use in tests or where CDI is not available.
+	 * Constructor
 	 *
 	 * @param entityManager the entity manager to use
 	 */

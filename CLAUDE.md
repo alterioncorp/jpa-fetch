@@ -31,7 +31,7 @@ mvn package -DskipTests
 
 ## Architecture Overview
 
-This is a small Java library (package `io.github.alterioncorp.jpa.fetch`, groupId `io.github.alterioncorp`) that provides a CDI-injectable wrapper around JPA/Hibernate with fetch control as a first-class concern.
+This is a small Java library (package `io.github.alterioncorp.jpa.fetch`, groupId `io.github.alterioncorp`) that provides a framework-agnostic wrapper around JPA/Hibernate with fetch control as a first-class concern.
 
 ### Interface and implementation
 
@@ -47,6 +47,7 @@ API surface:
 - `createNamedQuery(queryName, resultClass)` — wraps `entityManager.createNamedQuery()`
 - `createQuery(jpql, resultClass)` — wraps `entityManager.createQuery(String, Class)`
 - `createQuery(reference)` — wraps `entityManager.createQuery(TypedQueryReference)`; uses `reference.getName()` and `reference.getResultType()` (Jakarta Persistence 3.2)
+- `clear()` — delegates to `entityManager.clear()`, detaching all managed entities
 
 All three `create*` methods return a `TypedFetchQuery<X>`.
 
@@ -54,7 +55,9 @@ All three `create*` methods return a `TypedFetchQuery<X>`.
 
 Adds `setFetchPaths(Path<?>... fetchPaths)`, which builds an `EntityGraph` from the given paths and applies it as a fetch hint. All `TypedQuery` setters are overridden with covariant `TypedFetchQuery<X>` return types to preserve fluent chaining. Implemented by package-private `TypedFetchQueryImpl<X>`.
 
-`EntityFinderImpl` is an `@ApplicationScoped` CDI bean with `@PersistenceContext(unitName = "default")`, and also exposes a public constructor accepting `EntityManager` for direct use in tests.
+`TypedFetchQueryImpl.unwrap(Class<T>)` returns `this` when the requested type is assignable from the wrapper (e.g. `unwrap(TypedFetchQuery.class)`); otherwise delegates to the underlying provider query.
+
+`EntityFinderImpl` exposes a public constructor accepting `EntityManager`, making it usable in any framework (Quarkus, Spring, plain JPA, etc.).
 
 **`PathParser`** — static utility that converts Q-type paths into a `PathTree` via `buildTree(Path<?>...)` / `buildTree(String...)`, and individual path strings into a `PathNode` chain via `buildNode(String)`. Also exposes `pathToString(Path<?>)` to normalise a QueryDSL path to a dot-separated attribute string relative to the entity root.
 
@@ -72,4 +75,3 @@ Test classes: `EntityFinderImplJpaTest` (JPA integration), `EntityFinderImplMock
 ### Key dependencies
 - `querydsl-jpa` / `querydsl-core` (`io.github.openfeign.querydsl` fork, v7.x) — compile-scope
 - Hibernate 7.x and Jakarta Persistence 3.2 — provided scope
-- Jakarta CDI 4 / Inject 2 / Annotation 2 — provided scope

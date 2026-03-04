@@ -130,12 +130,64 @@ QueryDSL Q-types must be generated for your entities. Configure `maven-compiler-
 
 With `querydsl.packageSuffix=.path`, Q-types are generated in a `.path` sub-package of the entity's package. For example, an entity `io.github.alterioncorp.example.entities.Person` gets a Q-type at `io.github.alterioncorp.example.entities.path.QPerson`.
 
-### CDI injection
+### Framework integration
 
-`EntityFinderImpl` is an `@ApplicationScoped` CDI bean bound to `@PersistenceContext(unitName = "default")`. Inject it directly:
+`EntityFinderImpl` accepts an `EntityManager` via its constructor, so it integrates with any framework.
+
+#### CDI (Quarkus, Jakarta EE)
+
+```java
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+@ApplicationScoped
+public class EntityFinderProducer {
+
+    @PersistenceContext
+    EntityManager entityManager;
+
+    @Produces
+    @ApplicationScoped
+    public EntityFinder entityFinder() {
+        return new EntityFinderImpl(entityManager);
+    }
+}
+```
+
+Then inject normally:
 
 ```java
 @Inject
+EntityFinder entityFinder;
+```
+
+#### Spring
+
+```java
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class EntityFinderConfig {
+
+    @PersistenceContext
+    EntityManager entityManager;
+
+    @Bean
+    public EntityFinder entityFinder() {
+        return new EntityFinderImpl(entityManager);
+    }
+}
+```
+
+Then inject normally:
+
+```java
+@Autowired
 EntityFinder entityFinder;
 ```
 
@@ -155,6 +207,12 @@ entityFinder.createQuery("select p from Person p where p.name = ?1", Person.clas
 
 // Named query
 entityFinder.createNamedQuery(Person.QUERY_BY_NAME, Person.class)
+        .setParameter(1, "Smith")
+        .setFetchPaths(QPerson.person.organization())
+        .getSingleResult();
+
+// Named query via JPA Metamodel TypedQueryReference (Jakarta Persistence 3.2)
+entityFinder.createQuery(Person_.findByName)
         .setParameter(1, "Smith")
         .setFetchPaths(QPerson.person.organization())
         .getSingleResult();
@@ -180,6 +238,8 @@ Person person = entityFinder.find(Person.class, id, LockModeType.PESSIMISTIC_WRI
 ```
 
 The persistence context is cleared before each `find` call to avoid returning a cached instance that lacks the requested associations.
+
+> **Note:** This clear is a side effect that detaches all currently managed entities. Any managed entity obtained before the `find` call will become detached, and lazy associations on it that have not yet been loaded will throw a `LazyInitializationException` if accessed afterwards. Avoid interleaving `find` calls with code that relies on other entities remaining managed.
 
 ### Collection associations
 

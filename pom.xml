@@ -39,9 +39,9 @@
 	</distributionManagement>
 
 	<properties>
+		<version.hibernate>7.2.5.Final</version.hibernate>
 		<version.querydsl>7.1</version.querydsl>
 		<version.slf4j>2.0.17</version.slf4j>
-		<version.hibernate>7.2.5.Final</version.hibernate>
 		<version.derby>10.16.1.1</version.derby>
 	</properties>
 
@@ -50,12 +50,6 @@
 			<groupId>jakarta.persistence</groupId>
 			<artifactId>jakarta.persistence-api</artifactId>
 			<version>3.2.0</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.enterprise</groupId>
-			<artifactId>jakarta.enterprise.cdi-api</artifactId>
-			<version>4.1.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
