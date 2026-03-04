@@ -59,28 +59,24 @@ public class EntityFinderImpl implements EntityFinder {
 	/** {@inheritDoc} */
 	@Override
 	public <T> T find(Class<T> type, Object id, Path<?>... fetchPaths) {
-		entityManager.clear();
 		return entityManager.find(type, id, buildHints(type, Map.of(), fetchPaths));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public <T> T find(Class<T> type, Object id, Map<String, Object> properties, Path<?>... fetchPaths) {
-		entityManager.clear();
 		return entityManager.find(type, id, buildHints(type, properties, fetchPaths));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public <T> T find(Class<T> type, Object id, LockModeType lockMode, Path<?>... fetchPaths) {
-		entityManager.clear();
 		return entityManager.find(type, id, lockMode, buildHints(type, Map.of(), fetchPaths));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public <T> T find(Class<T> type, Object id, LockModeType lockMode, Map<String, Object> properties, Path<?>... fetchPaths) {
-		entityManager.clear();
 		return entityManager.find(type, id, lockMode, buildHints(type, properties, fetchPaths));
 	}
 

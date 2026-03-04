@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-03-03
+
+### Changed
+- `EntityFinder.find` methods no longer clear the persistence context before executing.
+  Callers that need a fresh load should call `clear()` explicitly beforehand.
+
 ## [1.0.1] - 2026-03-03
 
 ### Changed
