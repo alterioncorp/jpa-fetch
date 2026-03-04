@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.1] - Unreleased
 
+### Changed
+- `EntityFinderImpl` no longer carries CDI annotations (`@ApplicationScoped`, `@PersistenceContext`).
+  It is now a plain class constructed with an `EntityManager`, making it usable in any framework
+  (CDI, Spring, plain JPA). See the README for integration examples.
+
 ### Fixed
 - `TypedFetchQueryImpl.unwrap(Class<T>)` now correctly returns `this` when the requested type is
   assignable from the wrapper itself (e.g. `unwrap(TypedFetchQuery.class)`), instead of always
@@ -18,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release.
-- `EntityFinder` / `EntityFinderImpl` — CDI-injectable entry point modelled after `EntityManager`,
+- `EntityFinder` / `EntityFinderImpl` — entry point modelled after `EntityManager`,
   with `find`, `clear`, and `create*Query` methods that accept QueryDSL `Path<?>` values for fetch control.
 - `TypedFetchQuery` / `TypedFetchQueryImpl` — `TypedQuery` extension with `setFetchPaths` for
   applying an entity graph fetch hint inline.
