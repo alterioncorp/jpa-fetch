@@ -4,3 +4,5 @@
 **/target/
 **/.tern-project
 **/derby.log
+.claude/.cache/
+.claude/settings.local.json
