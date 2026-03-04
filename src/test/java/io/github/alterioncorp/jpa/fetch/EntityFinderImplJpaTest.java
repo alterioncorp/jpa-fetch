@@ -12,7 +12,6 @@ import io.github.alterioncorp.jpa.fetch.entities.Person;
 import io.github.alterioncorp.jpa.fetch.entities.Role;
 import io.github.alterioncorp.jpa.fetch.entities.path.QOrganization;
 import io.github.alterioncorp.jpa.fetch.entities.path.QPerson;
-import io.github.alterioncorp.jpa.fetch.test.JpaTestBase;
 
 public class EntityFinderImplJpaTest extends JpaTestBase {
 

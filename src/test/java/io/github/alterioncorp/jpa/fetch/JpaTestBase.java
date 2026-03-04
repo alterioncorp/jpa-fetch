@@ -1,4 +1,4 @@
-package io.github.alterioncorp.jpa.fetch.test;
+package io.github.alterioncorp.jpa.fetch;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
