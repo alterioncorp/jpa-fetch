@@ -47,12 +47,15 @@ API surface:
 - `createNamedQuery(queryName, resultClass)` — wraps `entityManager.createNamedQuery()`
 - `createQuery(jpql, resultClass)` — wraps `entityManager.createQuery(String, Class)`
 - `createQuery(reference)` — wraps `entityManager.createQuery(TypedQueryReference)`; uses `reference.getName()` and `reference.getResultType()` (Jakarta Persistence 3.2)
+- `clear()` — delegates to `entityManager.clear()`, detaching all managed entities
 
 All three `create*` methods return a `TypedFetchQuery<X>`.
 
 **`TypedFetchQuery<X>`** — Subinterface of `TypedQuery<X>`
 
 Adds `setFetchPaths(Path<?>... fetchPaths)`, which builds an `EntityGraph` from the given paths and applies it as a fetch hint. All `TypedQuery` setters are overridden with covariant `TypedFetchQuery<X>` return types to preserve fluent chaining. Implemented by package-private `TypedFetchQueryImpl<X>`.
+
+`TypedFetchQueryImpl.unwrap(Class<T>)` returns `this` when the requested type is assignable from the wrapper (e.g. `unwrap(TypedFetchQuery.class)`); otherwise delegates to the underlying provider query.
 
 `EntityFinderImpl` is an `@ApplicationScoped` CDI bean with `@PersistenceContext(unitName = "default")`, and also exposes a public constructor accepting `EntityManager` for direct use in tests.
 

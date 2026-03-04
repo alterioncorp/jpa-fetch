@@ -261,6 +261,9 @@ class TypedFetchQueryImpl<X> implements TypedFetchQuery<X> {
 
 	@Override
 	public <T> T unwrap(Class<T> cls) {
+		if (cls.isAssignableFrom(this.getClass())) {
+			return cls.cast(this);
+		}
 		return delegate.unwrap(cls);
 	}
 }
