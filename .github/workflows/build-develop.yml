@@ -30,8 +30,15 @@ jobs:
           MAVEN_USERNAME: ${{ github.actor }}
           MAVEN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Save coverage report
+        uses: actions/upload-artifact@v4
         with:
-          files: target/site/jacoco/jacoco.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
+          name: jacoco-report
+          path: target/site/jacoco/jacoco.xml
+          retention-days: 1
+
+  upload-coverage:
+    needs: publish-snapshot
+    uses: alterioncorp/.github/.github/workflows/upload-coverage.yml@main
+    secrets:
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}
