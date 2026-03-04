@@ -11,7 +11,7 @@
 	</parent>
 
 	<artifactId>jpa-fetch</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 
 	<name>jpa-fetch</name>
 	<description>A thin wrapper around JPA's EntityManager API with first-class fetch control</description>
