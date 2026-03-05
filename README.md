@@ -139,6 +139,7 @@ Both styles can be mixed freely in the same call.
 | Library version | Jakarta Persistence |
 |-----------------|---------------------|
 | 1.1.x           | 3.2                 |
+| 1.0.x           | 3.2                 |
 
 ### JPA Metamodel (for `FetchPaths.of`)
 
