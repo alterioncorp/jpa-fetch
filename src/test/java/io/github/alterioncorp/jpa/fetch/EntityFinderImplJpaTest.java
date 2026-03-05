@@ -78,7 +78,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 		entityManager.clear();
 
 		Person result = queryExecutor.find(Person.class, person.getId(),
-				FetchPaths.fromAttributeChain(Person_.organization));
+				FetchPaths.of(Person_.organization));
 		Assertions.assertNotNull(result);
 		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization()));
 	}
@@ -136,7 +136,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 		entityManager.clear();
 
 		Organization result = queryExecutor.find(Organization.class, organization.getId(),
-				FetchPaths.fromAttributeChain(Organization_.persons, Person_.role));
+				FetchPaths.of(Organization_.persons, Person_.role));
 		Assertions.assertNotNull(result);
 		Assertions.assertEquals(2, result.getPersons().size());
 		result.getPersons().forEach(p -> {
@@ -189,7 +189,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 		entityManager.clear();
 
 		Person result = queryExecutor.find(Person.class, person.getId(),
-				FetchPaths.fromAttributeChain(Person_.organization, Organization_.country));
+				FetchPaths.of(Person_.organization, Organization_.country));
 
 		Assertions.assertNotNull(result);
 		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization()));
@@ -288,7 +288,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 
 		List<Person> results = queryExecutor
 				.createQuery("select p from Person p where p.name = ?1 order by p.name asc", Person.class)
-				.setFetchPaths(FetchPaths.fromAttributeChain(Person_.organization))
+				.setFetchPaths(FetchPaths.of(Person_.organization))
 				.setParameter(1, "b")
 				.getResultList();
 
@@ -354,7 +354,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 
 		List<Organization> results = queryExecutor
 				.createQuery("select o from Organization o where o.name = ?1 order by o.name asc", Organization.class)
-				.setFetchPaths(FetchPaths.fromAttributeChain(Organization_.persons, Person_.role))
+				.setFetchPaths(FetchPaths.of(Organization_.persons, Person_.role))
 				.setParameter(1, "a")
 				.getResultList();
 
@@ -413,7 +413,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 
 		List<Person> results = queryExecutor
 				.createQuery("select p from Person p where p.name = ?1 order by p.name asc", Person.class)
-				.setFetchPaths(FetchPaths.fromAttributeChain(Person_.organization, Organization_.country))
+				.setFetchPaths(FetchPaths.of(Person_.organization, Organization_.country))
 				.setParameter(1, "alice")
 				.getResultList();
 
@@ -517,7 +517,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 
 		List<Person> results = queryExecutor
 				.createQuery("select p from Person p where p.name = ?1 order by p.name asc", Person.class)
-				.setFetchPaths(FetchPaths.fromAttributeChain(Person_.organization))
+				.setFetchPaths(FetchPaths.of(Person_.organization))
 				.setParameter(1, "b")
 				.getResultStream()
 				.toList();
@@ -585,7 +585,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 
 		List<Organization> results = queryExecutor
 				.createQuery("select o from Organization o where o.name = ?1 order by o.name asc", Organization.class)
-				.setFetchPaths(FetchPaths.fromAttributeChain(Organization_.persons, Person_.role))
+				.setFetchPaths(FetchPaths.of(Organization_.persons, Person_.role))
 				.setParameter(1, "a")
 				.getResultStream()
 				.toList();
@@ -646,7 +646,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 
 		List<Person> results = queryExecutor
 				.createQuery("select p from Person p where p.name = ?1 order by p.name asc", Person.class)
-				.setFetchPaths(FetchPaths.fromAttributeChain(Person_.organization, Organization_.country))
+				.setFetchPaths(FetchPaths.of(Person_.organization, Organization_.country))
 				.setParameter(1, "alice")
 				.getResultStream()
 				.toList();
@@ -718,7 +718,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 
 		Person result = queryExecutor
 				.createQuery("select p from Person p where p.name = ?1", Person.class)
-				.setFetchPaths(FetchPaths.fromAttributeChain(Person_.organization))
+				.setFetchPaths(FetchPaths.of(Person_.organization))
 				.setParameter(1, "b")
 				.getSingleResult();
 
@@ -784,7 +784,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 
 		Organization result = queryExecutor
 				.createQuery("select o from Organization o where o.name = ?1", Organization.class)
-				.setFetchPaths(FetchPaths.fromAttributeChain(Organization_.persons, Person_.role))
+				.setFetchPaths(FetchPaths.of(Organization_.persons, Person_.role))
 				.setParameter(1, "a")
 				.getSingleResult();
 
@@ -843,7 +843,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 
 		Person result = queryExecutor
 				.createQuery("select p from Person p where p.name = ?1", Person.class)
-				.setFetchPaths(FetchPaths.fromAttributeChain(Person_.organization, Organization_.country))
+				.setFetchPaths(FetchPaths.of(Person_.organization, Organization_.country))
 				.setParameter(1, "alice")
 				.getSingleResult();
 

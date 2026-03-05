@@ -226,7 +226,7 @@ public interface EntityFinder {
 	}
 
 	private static FetchPath[] toFetchPaths(Path<?>... paths) {
-		return Arrays.stream(paths).map(FetchPaths::fromQueryDsl).toArray(FetchPath[]::new);
+		return Arrays.stream(paths).map(FetchPaths::of).toArray(FetchPath[]::new);
 	}
 
 	/**

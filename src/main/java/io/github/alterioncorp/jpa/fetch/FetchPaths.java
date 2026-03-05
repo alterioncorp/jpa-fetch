@@ -23,7 +23,7 @@ public class FetchPaths {
 	 * @param path the QueryDSL path to convert
 	 * @return a {@link FetchPath} whose segments represent the attribute chain
 	 */
-	public static FetchPath fromQueryDsl(Path<?> path) {
+	public static FetchPath of(Path<?> path) {
 		String str = path.toString();
 		str = str.replaceAll("any\\(", "");
 		str = str.replaceAll("\\)", "");
@@ -48,7 +48,7 @@ public class FetchPaths {
 	 * @return a {@link FetchPath} whose segments are the attribute names
 	 * @throws IllegalArgumentException if consecutive attributes form an invalid chain
 	 */
-	public static FetchPath fromAttributeChain(Attribute<?, ?>... attributes) {
+	public static FetchPath of(Attribute<?, ?>... attributes) {
 		validateChain(attributes);
 		String[] segments = new String[attributes.length];
 		for (int i = 0; i < attributes.length; i++) {

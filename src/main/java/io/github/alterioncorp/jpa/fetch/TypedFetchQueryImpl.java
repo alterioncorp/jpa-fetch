@@ -24,7 +24,7 @@ import jakarta.persistence.TypedQuery;
  * {@link #setFetchPaths(FetchPath...)} builds an {@code EntityGraph} from the given
  * paths and applies it as a {@code jakarta.persistence.fetchgraph} hint on the delegate.
  * {@link #setFetchPaths(com.querydsl.core.types.Path[])} converts QueryDSL paths via
- * {@link FetchPaths#fromQueryDsl} before delegating.
+ * {@link FetchPaths#of} before delegating.
  *
  * @param <X> the query result type
  */

@@ -42,7 +42,7 @@ public interface TypedFetchQuery<X> extends TypedQuery<X> {
 	 * @return this query (for fluent chaining)
 	 */
 	default TypedFetchQuery<X> setFetchPaths(Path<?>... fetchPaths) {
-		return setFetchPaths(Arrays.stream(fetchPaths).map(FetchPaths::fromQueryDsl).toArray(FetchPath[]::new));
+		return setFetchPaths(Arrays.stream(fetchPaths).map(FetchPaths::of).toArray(FetchPath[]::new));
 	}
 
 	@Override

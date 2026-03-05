@@ -10,70 +10,70 @@ import io.github.alterioncorp.jpa.fetch.entities.path.QPerson;
 
 class FetchPathsTest extends JpaTestBase {
 
-	// --- fromQueryDsl ---
+	// --- of(Path<?>) ---
 
 	@Test
-	void testFromQueryDsl_singleSegment() {
-		FetchPath result = FetchPaths.fromQueryDsl(QPerson.person.organization());
+	void testOf_queryDsl_singleSegment() {
+		FetchPath result = FetchPaths.of(QPerson.person.organization());
 
 		Assertions.assertArrayEquals(new String[]{"organization"}, result.segments());
 	}
 
 	@Test
-	void testFromQueryDsl_multipleSegments() {
-		FetchPath result = FetchPaths.fromQueryDsl(QPerson.person.organization().country());
+	void testOf_queryDsl_multipleSegments() {
+		FetchPath result = FetchPaths.of(QPerson.person.organization().country());
 
 		Assertions.assertArrayEquals(new String[]{"organization", "country"}, result.segments());
 	}
 
 	@Test
-	void testFromQueryDsl_collectionPath() {
-		FetchPath result = FetchPaths.fromQueryDsl(QOrganization.organization.persons);
+	void testOf_queryDsl_collectionPath() {
+		FetchPath result = FetchPaths.of(QOrganization.organization.persons);
 
 		Assertions.assertArrayEquals(new String[]{"persons"}, result.segments());
 	}
 
 	@Test
-	void testFromQueryDsl_collectionWithNestedSegment() {
-		FetchPath result = FetchPaths.fromQueryDsl(QPerson.person.organization().persons);
+	void testOf_queryDsl_collectionWithNestedSegment() {
+		FetchPath result = FetchPaths.of(QPerson.person.organization().persons);
 
 		Assertions.assertArrayEquals(new String[]{"organization", "persons"}, result.segments());
 	}
 
-	// --- fromAttributeChain ---
+	// --- of(Attribute<?,?>...) ---
 
 	@Test
-	void testFromAttributes_singleAttribute() {
-		FetchPath result = FetchPaths.fromAttributeChain(Person_.organization);
+	void testOf_attributes_singleAttribute() {
+		FetchPath result = FetchPaths.of(Person_.organization);
 
 		Assertions.assertArrayEquals(new String[]{"organization"}, result.segments());
 	}
 
 	@Test
-	void testFromAttributes_multipleAttributes() {
-		FetchPath result = FetchPaths.fromAttributeChain(Person_.organization, Organization_.country);
+	void testOf_attributes_multipleAttributes() {
+		FetchPath result = FetchPaths.of(Person_.organization, Organization_.country);
 
 		Assertions.assertArrayEquals(new String[]{"organization", "country"}, result.segments());
 	}
 
 	@Test
-	void testFromAttributes_pluralAttribute() {
-		FetchPath result = FetchPaths.fromAttributeChain(Organization_.persons, Person_.role);
+	void testOf_attributes_pluralAttribute() {
+		FetchPath result = FetchPaths.of(Organization_.persons, Person_.role);
 
 		Assertions.assertArrayEquals(new String[]{"persons", "role"}, result.segments());
 	}
 
 	@Test
-	void testFromAttributes_emptyAttributes() {
-		FetchPath result = FetchPaths.fromAttributeChain();
+	void testOf_attributes_empty() {
+		FetchPath result = FetchPaths.of();
 
 		Assertions.assertArrayEquals(new String[0], result.segments());
 	}
 
 	@Test
-	void testFromAttributes_invalidChain_throws() {
+	void testOf_attributes_invalidChain_throws() {
 		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class,
-				() -> FetchPaths.fromAttributeChain(Person_.organization, Person_.role));
+				() -> FetchPaths.of(Person_.organization, Person_.role));
 
 		Assertions.assertTrue(ex.getMessage().contains("role"));
 		Assertions.assertTrue(ex.getMessage().contains("Person"));

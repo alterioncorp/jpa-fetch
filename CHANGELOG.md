@@ -13,13 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `FetchPath` — a functional interface (`String[] segments()`) representing a single path through
   the entity graph as an ordered array of attribute names.
 - `FetchPaths` — factory for creating `FetchPath` instances:
-  - `FetchPaths.fromAttributeChain(Attribute<?,?>... attributes)` — builds a `FetchPath` from JPA static
+  - `FetchPaths.of(Attribute<?,?>... attributes)` — builds a `FetchPath` from JPA static
     metamodel attributes; validates the attribute chain at call time and throws
     `IllegalArgumentException` if consecutive attributes do not form a valid traversal.
-  - `FetchPaths.fromQueryDsl(Path<?>)` — converts a QueryDSL path expression to a `FetchPath`.
+  - `FetchPaths.of(Path<?>)` — converts a QueryDSL path expression to a `FetchPath`.
 - `EntityFinder` and `TypedFetchQuery` now accept `FetchPath... fetchPaths` alongside the existing
   QueryDSL `Path<?>... fetchPaths` overloads. The QueryDSL overloads are now default methods that
-  convert via `FetchPaths.fromQueryDsl` and delegate, reducing implementor burden.
+  convert via `FetchPaths.of` and delegate, reducing implementor burden.
 
 ### Changed
 - `PathParser`, `PathTree`, and `PathNode` no longer have any QueryDSL dependency; they operate
