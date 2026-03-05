@@ -3,8 +3,6 @@ package io.github.alterioncorp.jpa.fetch;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.querydsl.core.types.Path;
-
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
@@ -26,9 +24,9 @@ public class EntityFinderImpl implements EntityFinder {
 	private final EntityManager entityManager;
 
 	/**
-	 * Constructor
+	 * Creates an {@code EntityFinderImpl} backed by the given {@link EntityManager}.
 	 *
-	 * @param entityManager the entity manager to use
+	 * @param entityManager the entity manager to use; must not be {@code null}
 	 */
 	public EntityFinderImpl(EntityManager entityManager) {
 		this.entityManager = entityManager;
@@ -58,25 +56,25 @@ public class EntityFinderImpl implements EntityFinder {
 
 	/** {@inheritDoc} */
 	@Override
-	public <T> T find(Class<T> type, Object id, Path<?>... fetchPaths) {
+	public <T> T find(Class<T> type, Object id, FetchPath... fetchPaths) {
 		return entityManager.find(type, id, buildHints(type, Map.of(), fetchPaths));
 	}
 
 	/** {@inheritDoc} */
 	@Override
-	public <T> T find(Class<T> type, Object id, Map<String, Object> properties, Path<?>... fetchPaths) {
+	public <T> T find(Class<T> type, Object id, Map<String, Object> properties, FetchPath... fetchPaths) {
 		return entityManager.find(type, id, buildHints(type, properties, fetchPaths));
 	}
 
 	/** {@inheritDoc} */
 	@Override
-	public <T> T find(Class<T> type, Object id, LockModeType lockMode, Path<?>... fetchPaths) {
+	public <T> T find(Class<T> type, Object id, LockModeType lockMode, FetchPath... fetchPaths) {
 		return entityManager.find(type, id, lockMode, buildHints(type, Map.of(), fetchPaths));
 	}
 
 	/** {@inheritDoc} */
 	@Override
-	public <T> T find(Class<T> type, Object id, LockModeType lockMode, Map<String, Object> properties, Path<?>... fetchPaths) {
+	public <T> T find(Class<T> type, Object id, LockModeType lockMode, Map<String, Object> properties, FetchPath... fetchPaths) {
 		return entityManager.find(type, id, lockMode, buildHints(type, properties, fetchPaths));
 	}
 
@@ -86,7 +84,7 @@ public class EntityFinderImpl implements EntityFinder {
 		entityManager.clear();
 	}
 
-	private <T> Map<String, Object> buildHints(Class<T> type, Map<String, Object> base, Path<?>... fetchPaths) {
+	private <T> Map<String, Object> buildHints(Class<T> type, Map<String, Object> base, FetchPath... fetchPaths) {
 		HashMap<String, Object> hints = new HashMap<>(base);
 		if (fetchPaths.length > 0) {
 			hints.put(HINT_FETCH_GRAPH, createEntityGraph(type, fetchPaths));
@@ -94,9 +92,10 @@ public class EntityFinderImpl implements EntityFinder {
 		return hints;
 	}
 
-	private <T> EntityGraph<T> createEntityGraph(Class<T> type, Path<?>... fetchPaths) {
+	private <T> EntityGraph<T> createEntityGraph(Class<T> type, FetchPath... fetchPaths) {
 		EntityGraph<T> entityGraph = entityManager.createEntityGraph(type);
 		PathParser.buildTree(fetchPaths).addToGraph(entityGraph);
 		return entityGraph;
 	}
+
 }

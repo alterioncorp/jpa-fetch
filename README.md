@@ -3,9 +3,35 @@
 [![codecov](https://codecov.io/gh/alterioncorp/jpa-fetch/graph/badge.svg)](https://codecov.io/gh/alterioncorp/jpa-fetch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-A thin wrapper around JPA's `EntityManager` API with first-class fetch control — callers specify which associations to load eagerly using type-safe QueryDSL paths, translated into JPA entity graphs at runtime.
+A thin wrapper around JPA's `EntityManager` API with first-class fetch control — callers specify which associations to load eagerly using type-safe path expressions, translated into JPA entity graphs at runtime.
+
+Two styles are supported:
+
+- **JPA metamodel** (`FetchPaths.fromAttributes`) — uses the standard JPA static metamodel (`Person_`, `Organization_`); validated at call time, no extra dependencies
+- **QueryDSL** (Q-type paths) — composable path expressions (`QPerson.person.organization().country()`); requires the QueryDSL APT processor
 
 ## Quick start
+
+**JPA metamodel style:**
+
+```java
+// Look up by primary key, eagerly fetching organization and its country
+Person person = entityFinder.find(Person.class, id,
+        FetchPaths.fromAttributes(Person_.organization, Organization_.country));
+```
+
+```java
+// Query with inline JPQL, eagerly fetching organization and role
+List<Person> persons = entityFinder
+        .createQuery("select p from Person p where p.name = ?1", Person.class)
+        .setParameter(1, "Smith")
+        .setFetchPaths(
+                FetchPaths.fromAttributes(Person_.organization),
+                FetchPaths.fromAttributes(Person_.role))
+        .getResultList();
+```
+
+**QueryDSL style:**
 
 ```java
 // Look up by primary key, eagerly fetching organization and its country
@@ -22,18 +48,9 @@ List<Person> persons = entityFinder
         .getResultList();
 ```
 
-```java
-// Named query — same fluent API
-List<Person> persons = entityFinder
-        .createNamedQuery(Person.QUERY_BY_NAME, Person.class)
-        .setParameter(1, "Smith")
-        .setFetchPaths(QPerson.person.organization(), QPerson.person.role())
-        .getResultList();
-```
-
 ## Purpose
 
-JPA `EntityGraph` is the right tool for controlling fetch depth at the call site, but its API is verbose, string-based, and non-composable. This library replaces it with [QueryDSL](https://openfeign.github.io/querydsl/)-generated path expressions — composable, refactor-safe, and checked at compile time — while exposing a familiar `EntityManager`-like API.
+JPA `EntityGraph` is the right tool for controlling fetch depth at the call site, but its API is verbose, string-based, and non-composable. This library replaces it with type-safe path expressions that are checked at compile time and validated at call time, while exposing a familiar `EntityManager`-like API.
 
 ### The EntityGraph API is verbose and non-composable
 
@@ -66,14 +83,30 @@ em.find(Person.class, id, Map.of("jakarta.persistence.fetchgraph", graph));
 
 ### With this library
 
-QueryDSL Q-types generate typed accessor methods whose return values expose further accessors, producing a composable expression that reads like the path it describes:
+Pass a `FetchPath` to `find` and the library builds the `EntityGraph` automatically — merging shared prefixes into a single subgraph, no manual tree-building required.
+
+**`FetchPaths.fromAttributes`** accepts a chain of JPA metamodel attributes describing a path through the entity graph. The chain is validated at call time — passing attributes that don't form a valid traversal throws `IllegalArgumentException`:
+
+```java
+// No fetch
+entityFinder.find(Person.class, id);
+
+// With organization
+entityFinder.find(Person.class, id,
+    FetchPaths.fromAttributes(Person_.organization));
+
+// With organization → country and role (two independent paths)
+entityFinder.find(Person.class, id,
+    FetchPaths.fromAttributes(Person_.organization, Organization_.country),
+    FetchPaths.fromAttributes(Person_.role));
+```
+
+**QueryDSL Q-types** generate typed accessor methods whose return values expose further accessors, producing a composable expression that reads like the path it describes:
 
 ```java
 QPerson.person.organization().country()   // organization → country
 QPerson.person.role()                     // role (independent branch)
 ```
-
-Pass these expressions to `find` and the library builds the `EntityGraph` automatically — merging shared prefixes into a single subgraph, no manual tree-building required:
 
 ```java
 // No fetch
@@ -89,6 +122,8 @@ entityFinder.find(Person.class, id,
     QPerson.person.role());
 ```
 
+Both styles can be mixed freely in the same call.
+
 ## Integration
 
 ### Maven dependency
@@ -97,13 +132,35 @@ entityFinder.find(Person.class, id,
 <dependency>
     <groupId>io.github.alterioncorp</groupId>
     <artifactId>jpa-fetch</artifactId>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
 | Library version | Jakarta Persistence |
 |-----------------|---------------------|
-| 1.0.x           | 3.2                 |
+| 1.1.x           | 3.2                 |
+
+### JPA Metamodel (for `FetchPaths.fromAttributes`)
+
+JPA metamodel classes (`Person_`, `Organization_`, etc.) must be generated for your entities. Configure `maven-compiler-plugin` to use `hibernate-processor` as an annotation processor:
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+        <annotationProcessorPaths>
+            <path>
+                <groupId>org.hibernate.orm</groupId>
+                <artifactId>hibernate-processor</artifactId>
+                <version>7.0.0.Final</version>
+            </path>
+        </annotationProcessorPaths>
+    </configuration>
+</plugin>
+```
+
+### QueryDSL Q-types (for QueryDSL path style)
 
 QueryDSL Q-types must be generated for your entities. Configure `maven-compiler-plugin` to use `querydsl-apt` (jakarta classifier) as an annotation processor:
 
@@ -198,7 +255,14 @@ EntityFinder entityFinder;
 `createQuery` and `createNamedQuery` mirror the `EntityManager` methods and return a `TypedFetchQuery<X>` — a `TypedQuery<X>` subinterface with an added `setFetchPaths` method. The full `TypedQuery` API is available, including pagination, parameter binding, and result retrieval.
 
 ```java
-// Inline JPQL
+// Inline JPQL — JPA metamodel style
+entityFinder.createQuery("select p from Person p where p.name = ?1", Person.class)
+        .setParameter(1, "Smith")
+        .setMaxResults(10)
+        .setFetchPaths(FetchPaths.fromAttributes(Person_.organization))
+        .getResultList();
+
+// Inline JPQL — QueryDSL style
 entityFinder.createQuery("select p from Person p where p.name = ?1", Person.class)
         .setParameter(1, "Smith")
         .setMaxResults(10)
@@ -208,13 +272,13 @@ entityFinder.createQuery("select p from Person p where p.name = ?1", Person.clas
 // Named query
 entityFinder.createNamedQuery(Person.QUERY_BY_NAME, Person.class)
         .setParameter(1, "Smith")
-        .setFetchPaths(QPerson.person.organization())
+        .setFetchPaths(FetchPaths.fromAttributes(Person_.organization))
         .getSingleResult();
 
 // Named query via JPA Metamodel TypedQueryReference (Jakarta Persistence 3.2)
 entityFinder.createQuery(Person_.findByName)
         .setParameter(1, "Smith")
-        .setFetchPaths(QPerson.person.organization())
+        .setFetchPaths(FetchPaths.fromAttributes(Person_.organization))
         .getSingleResult();
 ```
 
@@ -228,34 +292,32 @@ entityFinder.createQuery(Person_.findByName)
 // By ID
 Person person = entityFinder.find(Person.class, id);
 
-// With fetch paths
+// With fetch paths — JPA metamodel style
+Person person = entityFinder.find(Person.class, id,
+        FetchPaths.fromAttributes(Person_.organization, Organization_.country));
+
+// With fetch paths — QueryDSL style
 Person person = entityFinder.find(Person.class, id,
         QPerson.person.organization().country());
 
 // With lock mode
 Person person = entityFinder.find(Person.class, id, LockModeType.PESSIMISTIC_WRITE,
-        QPerson.person.organization());
+        FetchPaths.fromAttributes(Person_.organization));
 ```
 
 ### Collection associations
 
-Paths can traverse collection associations using `.any()`. Given:
+**JPA metamodel style** — pass the collection attribute followed by an attribute on the element type:
 
 ```java
-@Entity
-public class Organization {
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "organization")
-    private Collection<Person> persons;
-}
-
-@Entity
-public class Person {
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Role role;
-}
+// Fetch organization.persons and each person's role
+Organization org = entityFinder.find(Organization.class, id,
+        FetchPaths.fromAttributes(Organization_.persons, Person_.role));
 ```
 
-Fetch `organization.persons` and each person's `role` in one call:
+`FetchPaths.fromAttributes` validates the chain at call time: if `Person_.role` is not declared on the element type of `Organization_.persons`, an `IllegalArgumentException` is thrown immediately.
+
+**QueryDSL style** — paths can traverse collection associations using `.any()`:
 
 ```java
 Organization org = entityFinder.find(Organization.class, id,

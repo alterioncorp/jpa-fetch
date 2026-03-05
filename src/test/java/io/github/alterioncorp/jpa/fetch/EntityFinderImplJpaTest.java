@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test;
 
 import io.github.alterioncorp.jpa.fetch.entities.Country;
 import io.github.alterioncorp.jpa.fetch.entities.Organization;
+import io.github.alterioncorp.jpa.fetch.entities.Organization_;
 import io.github.alterioncorp.jpa.fetch.entities.Person;
+import io.github.alterioncorp.jpa.fetch.entities.Person_;
 import io.github.alterioncorp.jpa.fetch.entities.Role;
 import io.github.alterioncorp.jpa.fetch.entities.path.QOrganization;
 import io.github.alterioncorp.jpa.fetch.entities.path.QPerson;
@@ -23,6 +25,8 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 		super.before();
 		queryExecutor = new EntityFinderImpl(entityManager);
 	}
+
+	// --- find ---
 
 	@Test
 	public void testFind() {
@@ -41,7 +45,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testFind_Fetch() {
+	public void testFind_Fetch_WithQueryDslPath() {
 
 		Organization organization = new Organization("a");
 		Person person = new Person("b");
@@ -56,12 +60,31 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 
 		Person result = queryExecutor.find(Person.class, person.getId(), QPerson.person.organization());
 		Assertions.assertNotNull(result);
-		Assertions.assertNotNull(result.getOrganization());
 		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization()));
 	}
 
 	@Test
-	public void testFind_Fetch_OneToMany() {
+	public void testFind_Fetch_WithFetchPath() {
+
+		Organization organization = new Organization("a");
+		Person person = new Person("b");
+		person.setOrganization(organization);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(organization);
+			entityManager.persist(person);
+		});
+
+		entityManager.clear();
+
+		Person result = queryExecutor.find(Person.class, person.getId(),
+				FetchPaths.fromAttributes(Person_.organization));
+		Assertions.assertNotNull(result);
+		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization()));
+	}
+
+	@Test
+	public void testFind_Fetch_OneToMany_WithQueryDslPath() {
 
 		Role role = new Role("dev");
 		Organization organization = new Organization("a");
@@ -92,7 +115,38 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testFind_Fetch_Nested() {
+	public void testFind_Fetch_OneToMany_WithFetchPath() {
+
+		Role role = new Role("dev");
+		Organization organization = new Organization("a");
+		Person person1 = new Person("b");
+		Person person2 = new Person("c");
+		person1.setOrganization(organization);
+		person2.setOrganization(organization);
+		person1.setRole(role);
+		person2.setRole(role);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(role);
+			entityManager.persist(organization);
+			entityManager.persist(person1);
+			entityManager.persist(person2);
+		});
+
+		entityManager.clear();
+
+		Organization result = queryExecutor.find(Organization.class, organization.getId(),
+				FetchPaths.fromAttributes(Organization_.persons, Person_.role));
+		Assertions.assertNotNull(result);
+		Assertions.assertEquals(2, result.getPersons().size());
+		result.getPersons().forEach(p -> {
+			Assertions.assertTrue(persistenceUtil.isLoaded(p));
+			Assertions.assertTrue(persistenceUtil.isLoaded(p.getRole()));
+		});
+	}
+
+	@Test
+	public void testFind_Fetch_Nested_WithQueryDslPaths() {
 
 		Country country = new Country("us");
 		Organization organization = new Organization("org");
@@ -116,6 +170,33 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization()));
 		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization().getCountry()));
 	}
+
+	@Test
+	public void testFind_Fetch_Nested_WithFetchPaths() {
+
+		Country country = new Country("us");
+		Organization organization = new Organization("org");
+		organization.setCountry(country);
+		Person person = new Person("alice");
+		person.setOrganization(organization);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(country);
+			entityManager.persist(organization);
+			entityManager.persist(person);
+		});
+
+		entityManager.clear();
+
+		Person result = queryExecutor.find(Person.class, person.getId(),
+				FetchPaths.fromAttributes(Person_.organization, Organization_.country));
+
+		Assertions.assertNotNull(result);
+		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization()));
+		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization().getCountry()));
+	}
+
+	// --- getResultList ---
 
 	@Test
 	public void testGetResultList() {
@@ -168,7 +249,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testGetResultList_Fetch() {
+	public void testGetResultList_Fetch_WithQueryDslPath() {
 
 		Organization organization = new Organization("a");
 		Person person = new Person("b");
@@ -192,7 +273,31 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testGetResultList_Fetch_OneToMany() {
+	public void testGetResultList_Fetch_WithFetchPath() {
+
+		Organization organization = new Organization("a");
+		Person person = new Person("b");
+		person.setOrganization(organization);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(organization);
+			entityManager.persist(person);
+		});
+
+		entityManager.clear();
+
+		List<Person> results = queryExecutor
+				.createQuery("select p from Person p where p.name = ?1 order by p.name asc", Person.class)
+				.setFetchPaths(FetchPaths.fromAttributes(Person_.organization))
+				.setParameter(1, "b")
+				.getResultList();
+
+		Assertions.assertEquals(1, results.size());
+		Assertions.assertTrue(persistenceUtil.isLoaded(results.get(0).getOrganization()));
+	}
+
+	@Test
+	public void testGetResultList_Fetch_OneToMany_WithQueryDslPath() {
 
 		Role role = new Role("dev");
 		Organization organization = new Organization("a");
@@ -227,7 +332,42 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testGetResultList_Fetch_Nested() {
+	public void testGetResultList_Fetch_OneToMany_WithFetchPath() {
+
+		Role role = new Role("dev");
+		Organization organization = new Organization("a");
+		Person person1 = new Person("b");
+		Person person2 = new Person("c");
+		person1.setOrganization(organization);
+		person2.setOrganization(organization);
+		person1.setRole(role);
+		person2.setRole(role);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(role);
+			entityManager.persist(organization);
+			entityManager.persist(person1);
+			entityManager.persist(person2);
+		});
+
+		entityManager.clear();
+
+		List<Organization> results = queryExecutor
+				.createQuery("select o from Organization o where o.name = ?1 order by o.name asc", Organization.class)
+				.setFetchPaths(FetchPaths.fromAttributes(Organization_.persons, Person_.role))
+				.setParameter(1, "a")
+				.getResultList();
+
+		Assertions.assertEquals(1, results.size());
+		Assertions.assertEquals(2, results.get(0).getPersons().size());
+		results.get(0).getPersons().forEach(p -> {
+			Assertions.assertTrue(persistenceUtil.isLoaded(p));
+			Assertions.assertTrue(persistenceUtil.isLoaded(p.getRole()));
+		});
+	}
+
+	@Test
+	public void testGetResultList_Fetch_Nested_WithQueryDslPaths() {
 
 		Country country = new Country("us");
 		Organization organization = new Organization("org");
@@ -253,6 +393,36 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 		Assertions.assertTrue(persistenceUtil.isLoaded(results.get(0).getOrganization()));
 		Assertions.assertTrue(persistenceUtil.isLoaded(results.get(0).getOrganization().getCountry()));
 	}
+
+	@Test
+	public void testGetResultList_Fetch_Nested_WithFetchPaths() {
+
+		Country country = new Country("us");
+		Organization organization = new Organization("org");
+		organization.setCountry(country);
+		Person person = new Person("alice");
+		person.setOrganization(organization);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(country);
+			entityManager.persist(organization);
+			entityManager.persist(person);
+		});
+
+		entityManager.clear();
+
+		List<Person> results = queryExecutor
+				.createQuery("select p from Person p where p.name = ?1 order by p.name asc", Person.class)
+				.setFetchPaths(FetchPaths.fromAttributes(Person_.organization, Organization_.country))
+				.setParameter(1, "alice")
+				.getResultList();
+
+		Assertions.assertEquals(1, results.size());
+		Assertions.assertTrue(persistenceUtil.isLoaded(results.get(0).getOrganization()));
+		Assertions.assertTrue(persistenceUtil.isLoaded(results.get(0).getOrganization().getCountry()));
+	}
+
+	// --- getResultStream ---
 
 	@Test
 	public void testGetResultStream() {
@@ -307,7 +477,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testGetResultStream_Fetch() {
+	public void testGetResultStream_Fetch_WithQueryDslPath() {
 
 		Organization organization = new Organization("a");
 		Person person = new Person("b");
@@ -332,7 +502,32 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testGetResultStream_Fetch_OneToMany() {
+	public void testGetResultStream_Fetch_WithFetchPath() {
+
+		Organization organization = new Organization("a");
+		Person person = new Person("b");
+		person.setOrganization(organization);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(organization);
+			entityManager.persist(person);
+		});
+
+		entityManager.clear();
+
+		List<Person> results = queryExecutor
+				.createQuery("select p from Person p where p.name = ?1 order by p.name asc", Person.class)
+				.setFetchPaths(FetchPaths.fromAttributes(Person_.organization))
+				.setParameter(1, "b")
+				.getResultStream()
+				.toList();
+
+		Assertions.assertEquals(1, results.size());
+		Assertions.assertTrue(persistenceUtil.isLoaded(results.get(0).getOrganization()));
+	}
+
+	@Test
+	public void testGetResultStream_Fetch_OneToMany_WithQueryDslPath() {
 
 		Role role = new Role("dev");
 		Organization organization = new Organization("a");
@@ -368,7 +563,43 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testGetResultStream_Fetch_Nested() {
+	public void testGetResultStream_Fetch_OneToMany_WithFetchPath() {
+
+		Role role = new Role("dev");
+		Organization organization = new Organization("a");
+		Person person1 = new Person("b");
+		Person person2 = new Person("c");
+		person1.setOrganization(organization);
+		person2.setOrganization(organization);
+		person1.setRole(role);
+		person2.setRole(role);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(role);
+			entityManager.persist(organization);
+			entityManager.persist(person1);
+			entityManager.persist(person2);
+		});
+
+		entityManager.clear();
+
+		List<Organization> results = queryExecutor
+				.createQuery("select o from Organization o where o.name = ?1 order by o.name asc", Organization.class)
+				.setFetchPaths(FetchPaths.fromAttributes(Organization_.persons, Person_.role))
+				.setParameter(1, "a")
+				.getResultStream()
+				.toList();
+
+		Assertions.assertEquals(1, results.size());
+		Assertions.assertEquals(2, results.get(0).getPersons().size());
+		results.get(0).getPersons().forEach(p -> {
+			Assertions.assertTrue(persistenceUtil.isLoaded(p));
+			Assertions.assertTrue(persistenceUtil.isLoaded(p.getRole()));
+		});
+	}
+
+	@Test
+	public void testGetResultStream_Fetch_Nested_WithQueryDslPaths() {
 
 		Country country = new Country("us");
 		Organization organization = new Organization("org");
@@ -397,6 +628,37 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
+	public void testGetResultStream_Fetch_Nested_WithFetchPaths() {
+
+		Country country = new Country("us");
+		Organization organization = new Organization("org");
+		organization.setCountry(country);
+		Person person = new Person("alice");
+		person.setOrganization(organization);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(country);
+			entityManager.persist(organization);
+			entityManager.persist(person);
+		});
+
+		entityManager.clear();
+
+		List<Person> results = queryExecutor
+				.createQuery("select p from Person p where p.name = ?1 order by p.name asc", Person.class)
+				.setFetchPaths(FetchPaths.fromAttributes(Person_.organization, Organization_.country))
+				.setParameter(1, "alice")
+				.getResultStream()
+				.toList();
+
+		Assertions.assertEquals(1, results.size());
+		Assertions.assertTrue(persistenceUtil.isLoaded(results.get(0).getOrganization()));
+		Assertions.assertTrue(persistenceUtil.isLoaded(results.get(0).getOrganization().getCountry()));
+	}
+
+	// --- getSingleResult ---
+
+	@Test
 	public void testGetSingleResult() {
 
 		Organization organization1 = new Organization("a");
@@ -417,7 +679,7 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testGetSingleResult_Fetch() {
+	public void testGetSingleResult_Fetch_WithQueryDslPath() {
 
 		Organization organization = new Organization("a");
 		Person person = new Person("b");
@@ -441,7 +703,31 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testGetSingleResult_Fetch_OneToMany() {
+	public void testGetSingleResult_Fetch_WithFetchPath() {
+
+		Organization organization = new Organization("a");
+		Person person = new Person("b");
+		person.setOrganization(organization);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(organization);
+			entityManager.persist(person);
+		});
+
+		entityManager.clear();
+
+		Person result = queryExecutor
+				.createQuery("select p from Person p where p.name = ?1", Person.class)
+				.setFetchPaths(FetchPaths.fromAttributes(Person_.organization))
+				.setParameter(1, "b")
+				.getSingleResult();
+
+		Assertions.assertNotNull(result);
+		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization()));
+	}
+
+	@Test
+	public void testGetSingleResult_Fetch_OneToMany_WithQueryDslPath() {
 
 		Role role = new Role("dev");
 		Organization organization = new Organization("a");
@@ -476,7 +762,42 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 	}
 
 	@Test
-	public void testGetSingleResult_Fetch_Nested() {
+	public void testGetSingleResult_Fetch_OneToMany_WithFetchPath() {
+
+		Role role = new Role("dev");
+		Organization organization = new Organization("a");
+		Person person1 = new Person("b");
+		Person person2 = new Person("c");
+		person1.setOrganization(organization);
+		person2.setOrganization(organization);
+		person1.setRole(role);
+		person2.setRole(role);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(role);
+			entityManager.persist(organization);
+			entityManager.persist(person1);
+			entityManager.persist(person2);
+		});
+
+		entityManager.clear();
+
+		Organization result = queryExecutor
+				.createQuery("select o from Organization o where o.name = ?1", Organization.class)
+				.setFetchPaths(FetchPaths.fromAttributes(Organization_.persons, Person_.role))
+				.setParameter(1, "a")
+				.getSingleResult();
+
+		Assertions.assertNotNull(result);
+		Assertions.assertEquals(2, result.getPersons().size());
+		result.getPersons().forEach(p -> {
+			Assertions.assertTrue(persistenceUtil.isLoaded(p));
+			Assertions.assertTrue(persistenceUtil.isLoaded(p.getRole()));
+		});
+	}
+
+	@Test
+	public void testGetSingleResult_Fetch_Nested_WithQueryDslPaths() {
 
 		Country country = new Country("us");
 		Organization organization = new Organization("org");
@@ -495,6 +816,34 @@ public class EntityFinderImplJpaTest extends JpaTestBase {
 		Person result = queryExecutor
 				.createQuery("select p from Person p where p.name = ?1", Person.class)
 				.setFetchPaths(QPerson.person.organization(), QPerson.person.organization().country())
+				.setParameter(1, "alice")
+				.getSingleResult();
+
+		Assertions.assertNotNull(result);
+		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization()));
+		Assertions.assertTrue(persistenceUtil.isLoaded(result.getOrganization().getCountry()));
+	}
+
+	@Test
+	public void testGetSingleResult_Fetch_Nested_WithFetchPaths() {
+
+		Country country = new Country("us");
+		Organization organization = new Organization("org");
+		organization.setCountry(country);
+		Person person = new Person("alice");
+		person.setOrganization(organization);
+
+		entityManagerFactory.runInTransaction(entityManager -> {
+			entityManager.persist(country);
+			entityManager.persist(organization);
+			entityManager.persist(person);
+		});
+
+		entityManager.clear();
+
+		Person result = queryExecutor
+				.createQuery("select p from Person p where p.name = ?1", Person.class)
+				.setFetchPaths(FetchPaths.fromAttributes(Person_.organization, Organization_.country))
 				.setParameter(1, "alice")
 				.getSingleResult();
 

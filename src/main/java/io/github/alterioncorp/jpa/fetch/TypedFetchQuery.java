@@ -1,5 +1,6 @@
 package io.github.alterioncorp.jpa.fetch;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -16,7 +17,7 @@ import jakarta.persistence.TypedQuery;
 /**
  * A {@link TypedQuery} extension that adds fetch-path control as a first-class concern.
  * Callers specify which associations to eagerly load via {@link #setFetchPaths}, which
- * builds a JPA {@code EntityGraph} from the supplied QueryDSL paths and applies it as a
+ * builds a JPA {@code EntityGraph} from the supplied paths and applies it as a
  * {@code jakarta.persistence.fetchgraph} hint. All mutating {@code TypedQuery} methods are
  * overridden with covariant return types to support fluent chaining.
  *
@@ -25,13 +26,24 @@ import jakarta.persistence.TypedQuery;
 public interface TypedFetchQuery<X> extends TypedQuery<X> {
 
 	/**
+	 * Builds a JPA {@code EntityGraph} from the given fetch paths and applies it as a
+	 * {@code jakarta.persistence.fetchgraph} fetch hint on this query.
+	 *
+	 * @param fetchPaths fetch paths identifying the associations to eagerly load
+	 * @return this query (for fluent chaining)
+	 */
+	TypedFetchQuery<X> setFetchPaths(FetchPath... fetchPaths);
+
+	/**
 	 * Builds a JPA {@code EntityGraph} from the given QueryDSL paths and applies it as a
 	 * {@code jakarta.persistence.fetchgraph} fetch hint on this query.
 	 *
 	 * @param fetchPaths QueryDSL {@code Path} values identifying the associations to eagerly load
 	 * @return this query (for fluent chaining)
 	 */
-	TypedFetchQuery<X> setFetchPaths(Path<?>... fetchPaths);
+	default TypedFetchQuery<X> setFetchPaths(Path<?>... fetchPaths) {
+		return setFetchPaths(Arrays.stream(fetchPaths).map(FetchPaths::fromQueryDsl).toArray(FetchPath[]::new));
+	}
 
 	@Override
 	TypedFetchQuery<X> setMaxResults(int maxResult);
