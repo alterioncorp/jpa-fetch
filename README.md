@@ -7,7 +7,7 @@ A thin wrapper around JPA's `EntityManager` API with first-class fetch control �
 
 Two styles are supported:
 
-- **JPA metamodel** (`FetchPaths.fromAttributes`) — uses the standard JPA static metamodel (`Person_`, `Organization_`); validated at call time, no extra dependencies
+- **JPA metamodel** (`FetchPaths.fromAttributeChain`) — uses the standard JPA static metamodel (`Person_`, `Organization_`); validated at call time, no extra dependencies
 - **QueryDSL** (Q-type paths) — composable path expressions (`QPerson.person.organization().country()`); requires the QueryDSL APT processor
 
 ## Quick start
@@ -17,7 +17,7 @@ Two styles are supported:
 ```java
 // Look up by primary key, eagerly fetching organization and its country
 Person person = entityFinder.find(Person.class, id,
-        FetchPaths.fromAttributes(Person_.organization, Organization_.country));
+        FetchPaths.fromAttributeChain(Person_.organization, Organization_.country));
 ```
 
 ```java
@@ -26,8 +26,8 @@ List<Person> persons = entityFinder
         .createQuery("select p from Person p where p.name = ?1", Person.class)
         .setParameter(1, "Smith")
         .setFetchPaths(
-                FetchPaths.fromAttributes(Person_.organization),
-                FetchPaths.fromAttributes(Person_.role))
+                FetchPaths.fromAttributeChain(Person_.organization),
+                FetchPaths.fromAttributeChain(Person_.role))
         .getResultList();
 ```
 
@@ -85,7 +85,7 @@ em.find(Person.class, id, Map.of("jakarta.persistence.fetchgraph", graph));
 
 Pass a `FetchPath` to `find` and the library builds the `EntityGraph` automatically — merging shared prefixes into a single subgraph, no manual tree-building required.
 
-**`FetchPaths.fromAttributes`** accepts a chain of JPA metamodel attributes describing a path through the entity graph. The chain is validated at call time — passing attributes that don't form a valid traversal throws `IllegalArgumentException`:
+**`FetchPaths.fromAttributeChain`** accepts a chain of JPA metamodel attributes describing a path through the entity graph. The chain is validated at call time — passing attributes that don't form a valid traversal throws `IllegalArgumentException`:
 
 ```java
 // No fetch
@@ -93,12 +93,12 @@ entityFinder.find(Person.class, id);
 
 // With organization
 entityFinder.find(Person.class, id,
-    FetchPaths.fromAttributes(Person_.organization));
+    FetchPaths.fromAttributeChain(Person_.organization));
 
 // With organization → country and role (two independent paths)
 entityFinder.find(Person.class, id,
-    FetchPaths.fromAttributes(Person_.organization, Organization_.country),
-    FetchPaths.fromAttributes(Person_.role));
+    FetchPaths.fromAttributeChain(Person_.organization, Organization_.country),
+    FetchPaths.fromAttributeChain(Person_.role));
 ```
 
 **QueryDSL Q-types** generate typed accessor methods whose return values expose further accessors, producing a composable expression that reads like the path it describes:
@@ -140,7 +140,7 @@ Both styles can be mixed freely in the same call.
 |-----------------|---------------------|
 | 1.1.x           | 3.2                 |
 
-### JPA Metamodel (for `FetchPaths.fromAttributes`)
+### JPA Metamodel (for `FetchPaths.fromAttributeChain`)
 
 JPA metamodel classes (`Person_`, `Organization_`, etc.) must be generated for your entities. Configure `maven-compiler-plugin` to use `hibernate-processor` as an annotation processor:
 
@@ -259,7 +259,7 @@ EntityFinder entityFinder;
 entityFinder.createQuery("select p from Person p where p.name = ?1", Person.class)
         .setParameter(1, "Smith")
         .setMaxResults(10)
-        .setFetchPaths(FetchPaths.fromAttributes(Person_.organization))
+        .setFetchPaths(FetchPaths.fromAttributeChain(Person_.organization))
         .getResultList();
 
 // Inline JPQL — QueryDSL style
@@ -272,13 +272,13 @@ entityFinder.createQuery("select p from Person p where p.name = ?1", Person.clas
 // Named query
 entityFinder.createNamedQuery(Person.QUERY_BY_NAME, Person.class)
         .setParameter(1, "Smith")
-        .setFetchPaths(FetchPaths.fromAttributes(Person_.organization))
+        .setFetchPaths(FetchPaths.fromAttributeChain(Person_.organization))
         .getSingleResult();
 
 // Named query via JPA Metamodel TypedQueryReference (Jakarta Persistence 3.2)
 entityFinder.createQuery(Person_.findByName)
         .setParameter(1, "Smith")
-        .setFetchPaths(FetchPaths.fromAttributes(Person_.organization))
+        .setFetchPaths(FetchPaths.fromAttributeChain(Person_.organization))
         .getSingleResult();
 ```
 
@@ -294,7 +294,7 @@ Person person = entityFinder.find(Person.class, id);
 
 // With fetch paths — JPA metamodel style
 Person person = entityFinder.find(Person.class, id,
-        FetchPaths.fromAttributes(Person_.organization, Organization_.country));
+        FetchPaths.fromAttributeChain(Person_.organization, Organization_.country));
 
 // With fetch paths — QueryDSL style
 Person person = entityFinder.find(Person.class, id,
@@ -302,7 +302,7 @@ Person person = entityFinder.find(Person.class, id,
 
 // With lock mode
 Person person = entityFinder.find(Person.class, id, LockModeType.PESSIMISTIC_WRITE,
-        FetchPaths.fromAttributes(Person_.organization));
+        FetchPaths.fromAttributeChain(Person_.organization));
 ```
 
 ### Collection associations
@@ -312,10 +312,10 @@ Person person = entityFinder.find(Person.class, id, LockModeType.PESSIMISTIC_WRI
 ```java
 // Fetch organization.persons and each person's role
 Organization org = entityFinder.find(Organization.class, id,
-        FetchPaths.fromAttributes(Organization_.persons, Person_.role));
+        FetchPaths.fromAttributeChain(Organization_.persons, Person_.role));
 ```
 
-`FetchPaths.fromAttributes` validates the chain at call time: if `Person_.role` is not declared on the element type of `Organization_.persons`, an `IllegalArgumentException` is thrown immediately.
+`FetchPaths.fromAttributeChain` validates the chain at call time: if `Person_.role` is not declared on the element type of `Organization_.persons`, an `IllegalArgumentException` is thrown immediately.
 
 **QueryDSL style** — paths can traverse collection associations using `.any()`:
 

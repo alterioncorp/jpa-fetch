@@ -40,32 +40,32 @@ class FetchPathsTest extends JpaTestBase {
 		Assertions.assertArrayEquals(new String[]{"organization", "persons"}, result.segments());
 	}
 
-	// --- fromAttributes ---
+	// --- fromAttributeChain ---
 
 	@Test
 	void testFromAttributes_singleAttribute() {
-		FetchPath result = FetchPaths.fromAttributes(Person_.organization);
+		FetchPath result = FetchPaths.fromAttributeChain(Person_.organization);
 
 		Assertions.assertArrayEquals(new String[]{"organization"}, result.segments());
 	}
 
 	@Test
 	void testFromAttributes_multipleAttributes() {
-		FetchPath result = FetchPaths.fromAttributes(Person_.organization, Organization_.country);
+		FetchPath result = FetchPaths.fromAttributeChain(Person_.organization, Organization_.country);
 
 		Assertions.assertArrayEquals(new String[]{"organization", "country"}, result.segments());
 	}
 
 	@Test
 	void testFromAttributes_pluralAttribute() {
-		FetchPath result = FetchPaths.fromAttributes(Organization_.persons, Person_.role);
+		FetchPath result = FetchPaths.fromAttributeChain(Organization_.persons, Person_.role);
 
 		Assertions.assertArrayEquals(new String[]{"persons", "role"}, result.segments());
 	}
 
 	@Test
 	void testFromAttributes_emptyAttributes() {
-		FetchPath result = FetchPaths.fromAttributes();
+		FetchPath result = FetchPaths.fromAttributeChain();
 
 		Assertions.assertArrayEquals(new String[0], result.segments());
 	}
@@ -73,7 +73,7 @@ class FetchPathsTest extends JpaTestBase {
 	@Test
 	void testFromAttributes_invalidChain_throws() {
 		IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class,
-				() -> FetchPaths.fromAttributes(Person_.organization, Person_.role));
+				() -> FetchPaths.fromAttributeChain(Person_.organization, Person_.role));
 
 		Assertions.assertTrue(ex.getMessage().contains("role"));
 		Assertions.assertTrue(ex.getMessage().contains("Person"));

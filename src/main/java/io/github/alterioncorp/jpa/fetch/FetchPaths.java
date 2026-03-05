@@ -48,7 +48,7 @@ public class FetchPaths {
 	 * @return a {@link FetchPath} whose segments are the attribute names
 	 * @throws IllegalArgumentException if consecutive attributes form an invalid chain
 	 */
-	public static FetchPath fromAttributes(Attribute<?, ?>... attributes) {
+	public static FetchPath fromAttributeChain(Attribute<?, ?>... attributes) {
 		validateChain(attributes);
 		String[] segments = new String[attributes.length];
 		for (int i = 0; i < attributes.length; i++) {

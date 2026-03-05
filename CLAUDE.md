@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-This library provides a familiar JPA-like API for querying data, modeled after `EntityManager`, while making fetch control a first-class concern. Callers specify which associations to eagerly load at the call site via `FetchPath` — either using JPA metamodel attributes (`FetchPaths.fromAttributes(Person_.organization, Organization_.country)`) or QueryDSL Q-type paths (`QPerson.person.organization().country()`). The library translates these into a JPA `EntityGraph` at runtime and applies it as a fetch hint — type-safe, refactor-friendly, and without query proliferation.
+This library provides a familiar JPA-like API for querying data, modeled after `EntityManager`, while making fetch control a first-class concern. Callers specify which associations to eagerly load at the call site via `FetchPath` — either using JPA metamodel attributes (`FetchPaths.fromAttributeChain(Person_.organization, Organization_.country)`) or QueryDSL Q-type paths (`QPerson.person.organization().country()`). The library translates these into a JPA `EntityGraph` at runtime and applies it as a fetch hint — type-safe, refactor-friendly, and without query proliferation.
 
 ## Package
 
@@ -38,7 +38,7 @@ This is a small Java library (package `io.github.alterioncorp.jpa.fetch`, groupI
 **`FetchPath`** — functional interface (`String[] segments()`) representing a single path through the entity graph as an ordered array of attribute names. All `EntityFinder` and `TypedFetchQuery` methods accept `FetchPath... fetchPaths` as the primary API.
 
 **`FetchPaths`** — factory for creating `FetchPath` instances:
-- `FetchPaths.fromAttributes(Attribute<?,?>... attributes)` — builds a `FetchPath` from JPA static metamodel attributes; validates that each attribute's declaring type is compatible with the preceding attribute's target type (uses `PluralAttribute.getElementType()` for collections). Throws `IllegalArgumentException` on an invalid chain.
+- `FetchPaths.fromAttributeChain(Attribute<?,?>... attributes)` — builds a `FetchPath` from JPA static metamodel attributes; validates that each attribute's declaring type is compatible with the preceding attribute's target type (uses `PluralAttribute.getElementType()` for collections). Throws `IllegalArgumentException` on an invalid chain.
 - `FetchPaths.fromQueryDsl(Path<?>)` — converts a QueryDSL path expression to a `FetchPath` by stripping the root alias and normalising `.any()` calls.
 
 **`EntityFinder` / `EntityFinderImpl`** — Entry point, modeled after `EntityManager`.
