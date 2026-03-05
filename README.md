@@ -154,7 +154,7 @@ JPA metamodel classes (`Person_`, `Organization_`, etc.) must be generated for y
             <path>
                 <groupId>org.hibernate.orm</groupId>
                 <artifactId>hibernate-processor</artifactId>
-                <version>7.0.0.Final</version>
+                <version>7.2.6.Final</version>
             </path>
         </annotationProcessorPaths>
     </configuration>
