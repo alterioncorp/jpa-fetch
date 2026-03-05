@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.querydsl.core.types.Path;
-
 import jakarta.persistence.CacheRetrieveMode;
 import jakarta.persistence.CacheStoreMode;
 import jakarta.persistence.EntityGraph;
@@ -19,6 +17,17 @@ import jakarta.persistence.Parameter;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.TypedQuery;
 
+/**
+ * Package-private implementation of {@link TypedFetchQuery}.
+ *
+ * <p>Wraps a provider {@link TypedQuery} and forwards all calls to it.
+ * {@link #setFetchPaths(FetchPath...)} builds an {@code EntityGraph} from the given
+ * paths and applies it as a {@code jakarta.persistence.fetchgraph} hint on the delegate.
+ * {@link #setFetchPaths(com.querydsl.core.types.Path[])} converts QueryDSL paths via
+ * {@link FetchPaths#of} before delegating.
+ *
+ * @param <X> the query result type
+ */
 class TypedFetchQueryImpl<X> implements TypedFetchQuery<X> {
 
 	private final EntityManager entityManager;
@@ -32,7 +41,7 @@ class TypedFetchQueryImpl<X> implements TypedFetchQuery<X> {
 	}
 
 	@Override
-	public TypedFetchQuery<X> setFetchPaths(Path<?>... fetchPaths) {
+	public TypedFetchQuery<X> setFetchPaths(FetchPath... fetchPaths) {
 		if (fetchPaths.length > 0) {
 			EntityGraph<X> graph = entityManager.createEntityGraph(type);
 			PathParser.buildTree(fetchPaths).addToGraph(graph);

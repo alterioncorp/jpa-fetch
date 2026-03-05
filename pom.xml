@@ -11,7 +11,7 @@
 	</parent>
 
 	<artifactId>jpa-fetch</artifactId>
-	<version>1.0.2</version>
+	<version>1.1.0</version>
 
 	<name>jpa-fetch</name>
 	<description>A thin wrapper around JPA's EntityManager API with first-class fetch control</description>
@@ -129,6 +129,11 @@
 									<artifactId>querydsl-apt</artifactId>
 									<version>${version.querydsl}</version>
 									<classifier>jakarta</classifier>
+								</path>
+								<path>
+									<groupId>org.hibernate.orm</groupId>
+									<artifactId>hibernate-processor</artifactId>
+									<version>${version.hibernate}</version>
 								</path>
 							</annotationProcessorPaths>
 							<compilerArgs>

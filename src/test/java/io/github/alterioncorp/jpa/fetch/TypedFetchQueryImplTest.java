@@ -46,7 +46,7 @@ public class TypedFetchQueryImplTest {
 
 	@Test
 	public void testSetFetchPaths_NoPaths() {
-		TypedFetchQuery<Person> result = query.setFetchPaths();
+		TypedFetchQuery<Person> result = query.setFetchPaths(new FetchPath[0]);
 
 		Mockito.verifyNoInteractions(entityManager);
 		Mockito.verify(delegate, Mockito.never()).setHint(Mockito.anyString(), Mockito.any());
@@ -54,7 +54,7 @@ public class TypedFetchQueryImplTest {
 	}
 
 	@Test
-	public void testSetFetchPaths_WithPath() {
+	public void testSetFetchPaths_WithQueryDslPath() {
 		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
 
 		TypedFetchQuery<Person> result = query.setFetchPaths(QPerson.person.organization());
@@ -66,11 +66,35 @@ public class TypedFetchQueryImplTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testSetFetchPaths_WithNestedPath() {
+	public void testSetFetchPaths_WithNestedQueryDslPath() {
 		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
 		Mockito.when(entityGraph.addSubgraph("organization")).thenReturn(subgraph);
 
 		query.setFetchPaths(QPerson.person.organization().country());
+
+		Mockito.verify(entityGraph).addSubgraph("organization");
+		Mockito.verify(subgraph).addAttributeNodes("country");
+		Mockito.verify(delegate).setHint(EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph);
+	}
+
+	@Test
+	public void testSetFetchPaths_WithFetchPath() {
+		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
+
+		TypedFetchQuery<Person> result = query.setFetchPaths((FetchPath) () -> new String[]{"organization"});
+
+		Mockito.verify(entityGraph).addAttributeNodes("organization");
+		Mockito.verify(delegate).setHint(EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph);
+		Assertions.assertSame(query, result);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testSetFetchPaths_WithNestedFetchPath() {
+		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
+		Mockito.when(entityGraph.addSubgraph("organization")).thenReturn(subgraph);
+
+		query.setFetchPaths((FetchPath) () -> new String[]{"organization", "country"});
 
 		Mockito.verify(entityGraph).addSubgraph("organization");
 		Mockito.verify(subgraph).addAttributeNodes("country");

@@ -64,10 +64,20 @@ public class EntityFinderImplMockTest {
 	}
 
 	@Test
-	public void testFind_WithPaths_AddsEntityGraphToHints() {
+	public void testFind_WithQueryDslPaths_AddsEntityGraphToHints() {
 		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
 
 		entityFinder.find(Person.class, 1L, QPerson.person.organization());
+
+		Mockito.verify(entityManager).find(Person.class, 1L,
+				Map.of(EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph));
+	}
+
+	@Test
+	public void testFind_WithFetchPaths_AddsEntityGraphToHints() {
+		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
+
+		entityFinder.find(Person.class, 1L, (FetchPath) () -> new String[]{"organization"});
 
 		Mockito.verify(entityManager).find(Person.class, 1L,
 				Map.of(EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph));
@@ -85,11 +95,22 @@ public class EntityFinderImplMockTest {
 	}
 
 	@Test
-	public void testFind_WithPropertiesAndPaths_MergesBoth() {
+	public void testFind_WithPropertiesAndQueryDslPaths_MergesBoth() {
 		Map<String, Object> properties = Map.of("someHint", "someValue");
 		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
 
 		entityFinder.find(Person.class, 1L, properties, QPerson.person.organization());
+
+		Mockito.verify(entityManager).find(Person.class, 1L,
+				Map.of("someHint", "someValue", EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph));
+	}
+
+	@Test
+	public void testFind_WithPropertiesAndFetchPaths_MergesBoth() {
+		Map<String, Object> properties = Map.of("someHint", "someValue");
+		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
+
+		entityFinder.find(Person.class, 1L, properties, (FetchPath) () -> new String[]{"organization"});
 
 		Mockito.verify(entityManager).find(Person.class, 1L,
 				Map.of("someHint", "someValue", EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph));
@@ -105,10 +126,20 @@ public class EntityFinderImplMockTest {
 	}
 
 	@Test
-	public void testFind_WithLockModeAndPaths_AddsEntityGraphToHints() {
+	public void testFind_WithLockModeAndQueryDslPaths_AddsEntityGraphToHints() {
 		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
 
 		entityFinder.find(Person.class, 1L, LockModeType.PESSIMISTIC_WRITE, QPerson.person.organization());
+
+		Mockito.verify(entityManager).find(Person.class, 1L, LockModeType.PESSIMISTIC_WRITE,
+				Map.of(EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph));
+	}
+
+	@Test
+	public void testFind_WithLockModeAndFetchPaths_AddsEntityGraphToHints() {
+		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
+
+		entityFinder.find(Person.class, 1L, LockModeType.PESSIMISTIC_WRITE, (FetchPath) () -> new String[]{"organization"});
 
 		Mockito.verify(entityManager).find(Person.class, 1L, LockModeType.PESSIMISTIC_WRITE,
 				Map.of(EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph));
@@ -127,11 +158,22 @@ public class EntityFinderImplMockTest {
 	}
 
 	@Test
-	public void testFind_WithLockModePropertiesAndPaths_MergesAll() {
+	public void testFind_WithLockModePropertiesAndQueryDslPaths_MergesAll() {
 		Map<String, Object> properties = Map.of("someHint", "someValue");
 		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
 
 		entityFinder.find(Person.class, 1L, LockModeType.PESSIMISTIC_READ, properties, QPerson.person.organization());
+
+		Mockito.verify(entityManager).find(Person.class, 1L, LockModeType.PESSIMISTIC_READ,
+				Map.of("someHint", "someValue", EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph));
+	}
+
+	@Test
+	public void testFind_WithLockModePropertiesAndFetchPaths_MergesAll() {
+		Map<String, Object> properties = Map.of("someHint", "someValue");
+		Mockito.when(entityManager.createEntityGraph(Person.class)).thenReturn(entityGraph);
+
+		entityFinder.find(Person.class, 1L, LockModeType.PESSIMISTIC_READ, properties, (FetchPath) () -> new String[]{"organization"});
 
 		Mockito.verify(entityManager).find(Person.class, 1L, LockModeType.PESSIMISTIC_READ,
 				Map.of("someHint", "someValue", EntityFinderImpl.HINT_FETCH_GRAPH, entityGraph));
